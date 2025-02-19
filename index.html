@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Transcriber</title>
+    <link rel="stylesheet" href="style.css">
+    <script defer src="script.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Audio Transcriber</h1>
+        
+        <!-- Login Form -->
+        <div id="loginForm" class="box">
+            <h3>Enter Access Code</h3>
+            <input type="text" id="accessCode" placeholder="Enter Code">
+            <button onclick="login()">Login</button>
+        </div>
+
+        <!-- Upload Form (Hidden at Start) -->
+        <div id="uploadForm" class="box" style="display:none;">
+            <h3>Upload Your Audio File</h3>
+            <input type="file" id="file">
+            <select id="language">
+                <option value="en">English</option>
+                <option value="it">Italian</option>
+                <option value="es">Spanish</option>
+            </select>
+            <button onclick="uploadFile()">Upload & Transcribe</button>
+            
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar">0%</div>
+            </div>
+
+            <!-- Result Display -->
+            <p id="result"></p>
+            <button id="downloadPdf" onclick="downloadPDF()" style="display:none;">Download as PDF</button>
+        </div>
+    </div>
+
+    <!-- Animation Area -->
+    <div class="interactive-area" id="interactiveArea"></div>
+</body>
+</html>
