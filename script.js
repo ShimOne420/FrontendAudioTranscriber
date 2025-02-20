@@ -1,4 +1,4 @@
-const BACKEND_URL = "https://34.42.225.36:8000"; // Replace with your actual backend URL
+const BACKEND_URL = "https://35.206.101.150:8000"; // Replace with your actual backend URL
 
 let accessCode = ""; // Stores the user's access code
 
