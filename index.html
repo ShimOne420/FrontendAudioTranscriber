@@ -29,10 +29,13 @@
             </select>
             <button onclick="uploadFile()">Upload & Transcribe</button>
             
-            <!-- Progress Bar -->
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar">0%</div>
-            </div>
+           <!-- Progress Bar -->
+<div class="progress-container">
+    <div class="progress-bar" id="progressBar">0%</div>
+</div>
+<p id="liveStatus">Waiting for transcription...</p>
+<p id="result"></p>
+<button id="downloadPdf" onclick="downloadPDF()" style="display:none;">Download as PDF</button>
 
             <!-- Result Display -->
             <p id="result"></p>
