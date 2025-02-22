@@ -1,3 +1,4 @@
+
 const BACKEND_URL = "https://audiotesto.duckdns.org"; // URL del backend
 const POLLING_INTERVAL = 2000; // Ogni 2 secondi verifica Firebase
 
@@ -29,16 +30,21 @@ async function uploadFile() {
     }
 
     let fileInput = document.getElementById("file");
+    let file = fileInput.files[0];
+
+    if (!file) {
+        alert("Please select a file first!");
+        return;
+    }
+
     let formData = new FormData();
-    formData.append("file", fileInput.files[0]);
+    formData.append("file", file);
     formData.append("language", document.getElementById("language").value);
     formData.append("code", accessCode);
 
-    let progressBar = document.getElementById("progressBar");
-    let liveStatus = document.getElementById("liveStatus");
-    progressBar.style.width = "0%";
-    progressBar.innerText = "Uploading...";
-    liveStatus.innerText = "Uploading file...";
+    console.log("🚀 Uploading file:", file);
+    console.log("🔹 File type:", file.type);
+    console.log("🔹 File size:", file.size);
 
     try {
         let response = await fetch(`${BACKEND_URL}/transcribe`, {
@@ -46,18 +52,22 @@ async function uploadFile() {
             body: formData
         });
 
+        console.log("📌 Response:", response);
+
         let result = await response.json();
+        console.log("📌 Result JSON:", result);
+
         if (result.message && result.message.includes("File uploaded successfully")) {
-            transcriptionId = fileInput.files[0].name;
-            liveStatus.innerText = "Transcription in progress...";
-            startCheckingProgress(); // Inizia a controllare Firebase
+            transcriptionId = file.name;
+            console.log("✅ File caricato con successo:", transcriptionId);
+            startCheckingProgress();
         } else {
-            throw new Error("Error in transcription.");
+            console.error("❌ Errore nella trascrizione:", result.error);
+            alert("Errore durante la trascrizione.");
         }
     } catch (error) {
-        alert("Error during upload: " + error.message);
-        progressBar.style.width = "0%";
-        liveStatus.innerText = "Upload failed.";
+        console.error("❌ Errore durante l'upload:", error);
+        alert("Upload fallito.");
     }
 }
 
