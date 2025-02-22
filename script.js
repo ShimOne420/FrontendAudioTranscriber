@@ -40,53 +40,67 @@ async function uploadFile() {
     progressBar.innerText = "Uploading...";
     liveStatus.innerText = "Uploading file...";
 
-    let response = await fetch(`${BACKEND_URL}/transcribe`, {
-        method: "POST",
-        body: formData
-    });
+    try {
+        let response = await fetch(`${BACKEND_URL}/transcribe`, {
+            method: "POST",
+            body: formData
+        });
 
-    let result = await response.json();
-    if (result.message.includes("File uploaded successfully")) {
-        transcriptionId = fileInput.files[0].name;
-        liveStatus.innerText = "Transcription in progress...";
-        startCheckingProgress(); // Inizia a controllare Firebase
-    } else {
-        alert("Error in transcription!");
+        let result = await response.json();
+        if (result.message && result.message.includes("File uploaded successfully")) {
+            transcriptionId = fileInput.files[0].name;
+            liveStatus.innerText = "Transcription in progress...";
+            startCheckingProgress(); // Inizia a controllare Firebase
+        } else {
+            throw new Error("Error in transcription.");
+        }
+    } catch (error) {
+        alert("Error during upload: " + error.message);
         progressBar.style.width = "0%";
+        liveStatus.innerText = "Upload failed.";
     }
 }
 
 // ✅ Controlla Firebase per aggiornare il progresso
 async function startCheckingProgress() {
+    if (!transcriptionId) {
+        alert("Error: Transcription ID not found!");
+        return;
+    }
+
     let progressBar = document.getElementById("progressBar");
     let liveStatus = document.getElementById("liveStatus");
     let resultText = document.getElementById("result");
 
     let interval = setInterval(async () => {
-        let response = await fetch(`${BACKEND_URL}/progress?file=${transcriptionId}`);
-        let data = await response.json();
+        try {
+            let response = await fetch(`${BACKEND_URL}/progress?file=${transcriptionId}`);
+            let data = await response.json();
 
-        if (data.error) {
+            if (!response.ok || data.error) {
+                throw new Error("Error checking transcription progress.");
+            }
+
+            // Aggiorna il testo trascritto progressivamente
+            resultText.innerText = data.text || "";
+            
+            // Simula una barra di avanzamento
+            let progress = data.progress || 0;
+            progressBar.style.width = `${progress}%`;
+            progressBar.innerText = `${progress}%`;
+
+            // Stato di avanzamento
+            if (progress < 100) {
+                liveStatus.innerText = `Processing... ${progress}%`;
+            } else {
+                clearInterval(interval);
+                liveStatus.innerText = "Completed!";
+                document.getElementById("downloadPdf").style.display = "block";
+            }
+        } catch (error) {
             clearInterval(interval);
             alert("Error checking transcription progress.");
-            return;
-        }
-
-        // Aggiorna il testo trascritto progressivamente
-        resultText.innerText = data.text || "";
-        
-        // Simula una barra di avanzamento
-        let progress = data.progress || 0;
-        progressBar.style.width = `${progress}%`;
-        progressBar.innerText = `${progress}%`;
-
-        // Stato di avanzamento
-        if (progress < 100) {
-            liveStatus.innerText = `Processing... ${progress}%`;
-        } else {
-            clearInterval(interval);
-            liveStatus.innerText = "Completed!";
-            document.getElementById("downloadPdf").style.display = "block";
+            liveStatus.innerText = "Error in progress check.";
         }
     }, POLLING_INTERVAL);
 }
