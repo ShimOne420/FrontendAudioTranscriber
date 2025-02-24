@@ -42,8 +42,6 @@ async function uploadFile() {
     formData.append("code", accessCode);
 
     console.log("🚀 Uploading file:", file);
-    console.log("🔹 File type:", file.type);
-    console.log("🔹 File size:", file.size);
 
     try {
         let response = await fetch(`${BACKEND_URL}/transcribe`, {
@@ -51,12 +49,10 @@ async function uploadFile() {
             body: formData
         });
 
-        console.log("📌 Response:", response);
-
         let result = await response.json();
-        console.log("📌 Result JSON:", result);
+        console.log("📌 Risultato della trascrizione:", result);
 
-        if (result.message && result.message.includes("File uploaded successfully")) {
+        if (result.transcription) {
             transcriptionId = file.name;
             console.log("✅ File caricato con successo:", transcriptionId);
             startCheckingProgress();
@@ -80,6 +76,10 @@ async function startCheckingProgress() {
     let liveStatus = document.getElementById("liveStatus");
     let resultText = document.getElementById("result");
 
+    liveStatus.innerText = "Processing...";
+    progressBar.style.width = "0%";
+    progressBar.innerText = "0%";
+
     let interval = setInterval(async () => {
         try {
             let response = await fetch(`${BACKEND_URL}/get_transcription?filename=${transcriptionId}`);
@@ -89,16 +89,23 @@ async function startCheckingProgress() {
                 throw new Error("Error checking transcription progress.");
             }
 
-            // Aggiorna il testo trascritto progressivamente
-            resultText.innerText = data.text || "Waiting for transcription...";
+            // Simula una barra di avanzamento
+            let progress = data.progress || 100; // Se non c'è progress, lo impostiamo a 100 (completato)
+            progressBar.style.width = `${progress}%`;
+            progressBar.innerText = `${progress}%`;
 
             // Stato di avanzamento
-            liveStatus.innerText = "Completed!";
-            document.getElementById("downloadPdf").style.display = "block";
-
-            // Se abbiamo ricevuto il testo, fermiamo il polling
-            if (data.text) {
+            if (progress < 100) {
+                liveStatus.innerText = `Processing... ${progress}%`;
+            } else {
                 clearInterval(interval);
+                liveStatus.innerText = "Completed!";
+                document.getElementById("downloadPdf").style.display = "block";
+            }
+
+            // Aggiorna il testo della trascrizione
+            if (data.text) {
+                resultText.innerText = data.text;
             }
         } catch (error) {
             clearInterval(interval);
