@@ -1,4 +1,3 @@
-
 const BACKEND_URL = "https://audiotesto.duckdns.org"; 
 const POLLING_INTERVAL = 2000; 
 
@@ -59,7 +58,7 @@ async function uploadFile() {
             startCheckingLiveProgress();
         } else {
             console.error("❌ Errore nella trascrizione:", result.error);
-            alert("Errore durante la trascrizione.");
+            alert(`Errore durante la trascrizione: ${result.error}`);
         }
     } catch (error) {
         console.error("❌ Errore durante l'upload:", error);
@@ -89,18 +88,21 @@ async function startCheckingLiveProgress() {
             let data = await response.json();
 
             if (!response.ok || data.error) {
+                console.error("❌ Errore durante il polling:", data.error);
                 throw new Error("Error checking transcription progress.");
             }
 
             // ✅ Aggiorna il testo live
             if (data.text) {
                 resultText.innerText = data.text;
+                console.log("✍️ Trascrizione aggiornata:", data.text);
             }
 
             // ✅ Aggiorna la barra di caricamento
-            if (data.progress) {
+            if (data.progress !== undefined) {
                 progressBar.style.width = `${data.progress}%`;
                 progressBar.innerText = `${Math.round(data.progress)}%`;
+                console.log(`📊 Progresso trascrizione: ${data.progress}%`);
             }
 
             // ✅ Se completato, ferma il polling
@@ -111,8 +113,9 @@ async function startCheckingLiveProgress() {
                 document.getElementById("downloadPdf").style.display = "block";
             }
         } catch (error) {
+            console.error("❌ Errore durante il controllo della trascrizione:", error);
             clearInterval(interval);
-            alert("Error checking transcription progress.");
+            alert("Errore nel recupero della trascrizione.");
             liveStatus.innerText = "Error in progress check.";
             loadingSpinner.style.display = "none";
         }
