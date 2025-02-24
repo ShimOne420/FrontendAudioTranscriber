@@ -72,13 +72,13 @@ async function startCheckingProgress() {
         return;
     }
 
-    let progressBar = document.getElementById("progressBar");
     let liveStatus = document.getElementById("liveStatus");
     let resultText = document.getElementById("result");
+    let loadingSpinner = document.getElementById("loadingSpinner");
 
+    // Mostra lo spinner e il testo "Processing..."
     liveStatus.innerText = "Processing...";
-    progressBar.style.width = "0%";
-    progressBar.innerText = "0%";
+    loadingSpinner.style.display = "block";
 
     let interval = setInterval(async () => {
         try {
@@ -89,31 +89,23 @@ async function startCheckingProgress() {
                 throw new Error("Error checking transcription progress.");
             }
 
-            // Simula una barra di avanzamento
-            let progress = data.progress || 100; // Se non c'è progress, lo impostiamo a 100 (completato)
-            progressBar.style.width = `${progress}%`;
-            progressBar.innerText = `${progress}%`;
-
-            // Stato di avanzamento
-            if (progress < 100) {
-                liveStatus.innerText = `Processing... ${progress}%`;
-            } else {
-                clearInterval(interval);
-                liveStatus.innerText = "Completed!";
-                document.getElementById("downloadPdf").style.display = "block";
-            }
-
-            // Aggiorna il testo della trascrizione
+            // Se la trascrizione è disponibile, mostriamo il testo e fermiamo il polling
             if (data.text) {
                 resultText.innerText = data.text;
+                liveStatus.innerText = "Completed!";
+                loadingSpinner.style.display = "none"; // Nasconde lo spinner
+                clearInterval(interval);
+                document.getElementById("downloadPdf").style.display = "block";
             }
         } catch (error) {
             clearInterval(interval);
             alert("Error checking transcription progress.");
             liveStatus.innerText = "Error in progress check.";
+            loadingSpinner.style.display = "none"; // Nasconde lo spinner in caso di errore
         }
     }, POLLING_INTERVAL);
 }
+
 function downloadPDF() {
     let text = document.getElementById("result").innerText;
     let doc = new jsPDF();
