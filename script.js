@@ -1,4 +1,3 @@
-
 const BACKEND_URL = "https://audiotesto.duckdns.org"; // URL del backend
 const POLLING_INTERVAL = 2000; // Ogni 2 secondi verifica Firebase
 
@@ -71,7 +70,6 @@ async function uploadFile() {
     }
 }
 
-// ✅ Controlla Firebase per aggiornare il progresso
 async function startCheckingProgress() {
     if (!transcriptionId) {
         alert("Error: Transcription ID not found!");
@@ -84,7 +82,7 @@ async function startCheckingProgress() {
 
     let interval = setInterval(async () => {
         try {
-            let response = await fetch(`${BACKEND_URL}/progress?file=${transcriptionId}`);
+            let response = await fetch(`${BACKEND_URL}/get_transcription?filename=${transcriptionId}`);
             let data = await response.json();
 
             if (!response.ok || data.error) {
@@ -92,20 +90,15 @@ async function startCheckingProgress() {
             }
 
             // Aggiorna il testo trascritto progressivamente
-            resultText.innerText = data.text || "";
-            
-            // Simula una barra di avanzamento
-            let progress = data.progress || 0;
-            progressBar.style.width = `${progress}%`;
-            progressBar.innerText = `${progress}%`;
+            resultText.innerText = data.text || "Waiting for transcription...";
 
             // Stato di avanzamento
-            if (progress < 100) {
-                liveStatus.innerText = `Processing... ${progress}%`;
-            } else {
+            liveStatus.innerText = "Completed!";
+            document.getElementById("downloadPdf").style.display = "block";
+
+            // Se abbiamo ricevuto il testo, fermiamo il polling
+            if (data.text) {
                 clearInterval(interval);
-                liveStatus.innerText = "Completed!";
-                document.getElementById("downloadPdf").style.display = "block";
             }
         } catch (error) {
             clearInterval(interval);
@@ -114,7 +107,6 @@ async function startCheckingProgress() {
         }
     }, POLLING_INTERVAL);
 }
-
 function downloadPDF() {
     let text = document.getElementById("result").innerText;
     let doc = new jsPDF();
