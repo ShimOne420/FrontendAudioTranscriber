@@ -41,7 +41,7 @@ async function uploadFile() {
     formData.append("language", document.getElementById("language").value);
     formData.append("code", accessCode);
 
-    console.log("🚀 Uploading file:", file);
+    console.log("🚀 Uploading file:", file.name);
 
     try {
         let response = await fetch(`${BACKEND_URL}/transcribe`, {
@@ -116,7 +116,7 @@ async function startCheckingProgress() {
             liveStatus.innerText = "Error in progress check.";
             loadingSpinner.style.display = "none";
         }
-    }, 2000);
+    }, POLLING_INTERVAL);
 }
 
 function downloadPDF() {
