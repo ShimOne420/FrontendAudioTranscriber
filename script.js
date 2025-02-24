@@ -1,5 +1,6 @@
-const BACKEND_URL = "https://audiotesto.duckdns.org"; // URL del backend
-const POLLING_INTERVAL = 2000; // Ogni 2 secondi verifica Firebase
+
+const BACKEND_URL = "https://audiotesto.duckdns.org"; 
+const POLLING_INTERVAL = 2000; 
 
 let accessCode = "";
 let transcriptionId = "";
@@ -55,7 +56,7 @@ async function uploadFile() {
         if (result.transcription) {
             transcriptionId = file.name;
             console.log("✅ File caricato con successo:", transcriptionId);
-            startCheckingProgress();
+            startCheckingLiveProgress();
         } else {
             console.error("❌ Errore nella trascrizione:", result.error);
             alert("Errore durante la trascrizione.");
@@ -66,7 +67,7 @@ async function uploadFile() {
     }
 }
 
-async function startCheckingProgress() {
+async function startCheckingLiveProgress() {
     if (!transcriptionId) {
         alert("Error: Transcription ID not found!");
         return;
@@ -77,7 +78,6 @@ async function startCheckingProgress() {
     let loadingSpinner = document.getElementById("loadingSpinner");
     let progressBar = document.getElementById("progressBar");
 
-    // Mostra lo spinner e imposta lo stato su "Processing..."
     liveStatus.innerText = "Processing...";
     loadingSpinner.style.display = "block";
     progressBar.style.width = "0%";
@@ -85,25 +85,25 @@ async function startCheckingProgress() {
 
     let interval = setInterval(async () => {
         try {
-            let response = await fetch(`${BACKEND_URL}/get_transcription?filename=${transcriptionId}`);
+            let response = await fetch(`${BACKEND_URL}/get_live_transcription?filename=${transcriptionId}`);
             let data = await response.json();
 
             if (!response.ok || data.error) {
                 throw new Error("Error checking transcription progress.");
             }
 
-            // ✅ Aggiorna il testo della trascrizione in tempo reale
+            // ✅ Aggiorna il testo live
             if (data.text) {
                 resultText.innerText = data.text;
             }
 
-            // ✅ Aggiorna la barra di caricamento basata su "progress"
+            // ✅ Aggiorna la barra di caricamento
             if (data.progress) {
                 progressBar.style.width = `${data.progress}%`;
                 progressBar.innerText = `${Math.round(data.progress)}%`;
             }
 
-            // ✅ Se il progresso è al 100%, ferma il polling
+            // ✅ Se completato, ferma il polling
             if (data.progress >= 100) {
                 clearInterval(interval);
                 liveStatus.innerText = "Completed!";
