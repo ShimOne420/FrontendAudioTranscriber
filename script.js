@@ -8,7 +8,7 @@ let transcriptionId = "";
 
 
 
-async function login() {
+window.login = async function login() {
     accessCode = document.getElementById("accessCode").value;
 
     let response = await fetch(`${BACKEND_URL}/login`, {
