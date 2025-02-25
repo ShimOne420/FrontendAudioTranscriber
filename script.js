@@ -8,7 +8,7 @@ let transcriptionId = "";
 
 
 
-window.login = async function login() {
+window.login =async function login() {
     accessCode = document.getElementById("accessCode").value;
 
     let response = await fetch(`${BACKEND_URL}/login`, {
@@ -26,7 +26,7 @@ window.login = async function login() {
     }
 }
 
-async function uploadFile() {
+window.uploadFile = async function uploadFile() {
     if (!accessCode) {
         alert("You must enter a valid code first!");
         return;
@@ -68,7 +68,7 @@ async function uploadFile() {
         console.error("❌ Errore durante l'upload:", error);
         alert("Upload fallito.");
     }
-}
+};
 
 
 function startListeningToFirestore() {
