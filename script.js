@@ -4,6 +4,19 @@ const POLLING_INTERVAL = 2000;
 let accessCode = "";
 let transcriptionId = "";
 
+
+const firebaseConfig = {
+    apiKey: "LA_TUA_API_KEY",
+    authDomain: "AudioTranscription.firebaseapp.com",
+    projectId: "audiotranscription-8dab7",
+    storageBucket: "IL_TUO_BUCKET.appspot.com",
+    messagingSenderId: "IL_TUO_SENDER_ID",
+    appId: "IL_TUO_APP_ID"
+};
+
+// ✅ Inizializza Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 async function login() {
     accessCode = document.getElementById("accessCode").value;
 
@@ -55,7 +68,7 @@ async function uploadFile() {
         if (result.filename) {
             transcriptionId = result.filename;
             console.log("✅ File caricato con successo:", transcriptionId);
-            startCheckingLiveProgress();
+            startListeningToFirestore();
         } else {
             console.error("❌ Errore nella trascrizione:", result.error);
             alert(`Errore durante la trascrizione: ${result.error}`);
@@ -121,7 +134,51 @@ async function startCheckingLiveProgress() {
         }
     }, POLLING_INTERVAL);
 }
+function startListeningToFirestore() {
+    if (!transcriptionId) {
+        alert("Error: Transcription ID not found!");
+        return;
+    }
 
+    let liveStatus = document.getElementById("liveStatus");
+    let resultText = document.getElementById("result");
+    let loadingSpinner = document.getElementById("loadingSpinner");
+    let progressBar = document.getElementById("progressBar");
+
+    liveStatus.innerText = "Processing...";
+    loadingSpinner.style.display = "block";
+    progressBar.style.width = "0%";
+    progressBar.innerText = "0%";
+
+    // ✅ ASCOLTA Firebase Firestore IN TEMPO REALE
+    db.collection("transcriptions").doc(transcriptionId)
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                let data = doc.data();
+                console.log("🔄 Trascrizione aggiornata:", data.text);
+
+                if (data.text) {
+                    resultText.innerText = data.text;
+                }
+
+                if (data.progress !== undefined) {
+                    progressBar.style.width = `${data.progress}%`;
+                    progressBar.innerText = `${Math.round(data.progress)}%`;
+                }
+
+                // ✅ Se la trascrizione è completata, ferma il loading
+                if (data.progress >= 100) {
+                    liveStatus.innerText = "Completed!";
+                    loadingSpinner.style.display = "none";
+                    document.getElementById("downloadPdf").style.display = "block";
+                }
+            } else {
+                console.error("❌ Documento non trovato su Firebase.");
+            }
+        }, (error) => {
+            console.error("❌ Errore durante l'ascolto di Firestore:", error);
+        });
+}
 function downloadPDF() {
     let text = document.getElementById("result").innerText;
     let doc = new jsPDF();
