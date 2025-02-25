@@ -1,3 +1,4 @@
+import { db, firebaseConfig } from "./firebase-config.js";
 const BACKEND_URL = "https://audiotesto.duckdns.org"; 
 const POLLING_INTERVAL = 2000; 
 
@@ -5,9 +6,7 @@ let accessCode = "";
 let transcriptionId = "";
 
 
-// ✅ Inizializza Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+
 async function login() {
     accessCode = document.getElementById("accessCode").value;
 
@@ -70,61 +69,7 @@ async function uploadFile() {
     }
 }
 
-async function startCheckingLiveProgress() {
-    if (!transcriptionId) {
-        alert("Error: Transcription ID not found!");
-        return;
-    }
 
-    let liveStatus = document.getElementById("liveStatus");
-    let resultText = document.getElementById("result");
-    let loadingSpinner = document.getElementById("loadingSpinner");
-    let progressBar = document.getElementById("progressBar");
-
-    liveStatus.innerText = "Processing...";
-    loadingSpinner.style.display = "block";
-    progressBar.style.width = "0%";
-    progressBar.innerText = "0%";
-
-    let interval = setInterval(async () => {
-        try {
-            let response = await fetch(`${BACKEND_URL}/get_live_transcription?filename=${transcriptionId}`);
-            let data = await response.json();
-
-            if (!response.ok || data.error) {
-                console.error("❌ Errore durante il polling:", data.error);
-                throw new Error("Error checking transcription progress.");
-            }
-
-            // ✅ Aggiorna il testo live
-            if (data.text) {
-                resultText.innerText = data.text;
-                console.log("✍️ Trascrizione aggiornata:", data.text);
-            }
-
-            // ✅ Aggiorna la barra di caricamento
-            if (data.progress !== undefined) {
-                progressBar.style.width = `${data.progress}%`;
-                progressBar.innerText = `${Math.round(data.progress)}%`;
-                console.log(`📊 Progresso trascrizione: ${data.progress}%`);
-            }
-
-            // ✅ Se completato, ferma il polling
-            if (data.progress >= 100) {
-                clearInterval(interval);
-                liveStatus.innerText = "Completed!";
-                loadingSpinner.style.display = "none";
-                document.getElementById("downloadPdf").style.display = "block";
-            }
-        } catch (error) {
-            console.error("❌ Errore durante il controllo della trascrizione:", error);
-            clearInterval(interval);
-            alert("Errore nel recupero della trascrizione.");
-            liveStatus.innerText = "Error in progress check.";
-            loadingSpinner.style.display = "none";
-        }
-    }, POLLING_INTERVAL);
-}
 function startListeningToFirestore() {
     if (!transcriptionId) {
         alert("Error: Transcription ID not found!");
