@@ -5,15 +5,6 @@ let accessCode = "";
 let transcriptionId = "";
 
 
-const firebaseConfig = {
-    apiKey: "LA_TUA_API_KEY",
-    authDomain: "AudioTranscription.firebaseapp.com",
-    projectId: "audiotranscription-8dab7",
-    storageBucket: "IL_TUO_BUCKET.appspot.com",
-    messagingSenderId: "IL_TUO_SENDER_ID",
-    appId: "IL_TUO_APP_ID"
-};
-
 // ✅ Inizializza Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
