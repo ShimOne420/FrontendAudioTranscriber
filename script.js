@@ -90,7 +90,6 @@ window.uploadFile = async function uploadFile() {
     }
 };
 
-// ✅ Funzione per ascoltare Firestore in tempo reale
 function startListeningToFirestore() {
     if (!transcriptionId) {
         alert("Error: Transcription ID not found!");
@@ -115,15 +114,16 @@ function startListeningToFirestore() {
     onSnapshot(transcriptionRef, (docSnapshot) => {
         if (docSnapshot.exists()) {
             let data = docSnapshot.data();
-            console.log("📝 Trascrizione aggiornata da Firebase:", data.text);
+            console.log("🔥 Aggiornamento Firestore ricevuto:", data); // <--- DEBUG
 
             if (data.text) {
-                resultText.innerText = data.text; // Aggiorna il testo della trascrizione in tempo reale
+                resultText.innerText = data.text; // Aggiorna la trascrizione in tempo reale
             }
 
             if (data.progress !== undefined) {
                 progressBar.style.width = `${data.progress}%`;
                 progressBar.innerText = `${Math.round(data.progress)}%`;
+                console.log(`📊 Progresso trascrizione: ${data.progress}%`); // <--- DEBUG
             }
 
             if (data.progress >= 100) {
