@@ -12,8 +12,10 @@ const firebaseConfig = {
     measurementId: "G-75T7L72XCR"
 };
 
+// ✅ Inizializza Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app);
 
-export { db };
+// ✅ Esporta db e config
+export { db, firebaseConfig };
