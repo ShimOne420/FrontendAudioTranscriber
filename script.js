@@ -52,8 +52,8 @@ async function uploadFile() {
         let result = await response.json();
         console.log("📌 Risultato della trascrizione:", result);
 
-        if (result.transcription) {
-            transcriptionId = file.name;
+        if (result.filename) {
+            transcriptionId = result.filename;
             console.log("✅ File caricato con successo:", transcriptionId);
             startCheckingLiveProgress();
         } else {
