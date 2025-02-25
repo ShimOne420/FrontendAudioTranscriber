@@ -1,14 +1,33 @@
-import { db } from "./firebase-config.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-analytics.js";
 
+// ✅ Configurazione Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyCpIN4GU9y8Pgm9NSO76F_tL3AiwicnRgA",
+    authDomain: "audiotranscription-8dab7.firebaseapp.com",
+    projectId: "audiotranscription-8dab7",
+    storageBucket: "audiotranscription-8dab7.appspot.com",
+    messagingSenderId: "696854325181",
+    appId: "1:696854325181:web:d52cc13243c469d45ad4d4",
+    measurementId: "G-75T7L72XCR"
+};
+
+// ✅ Inizializza Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const db = getFirestore(app);
+
+console.log("✅ Firebase inizializzato correttamente!");
+
+// ✅ Variabili globali
 const BACKEND_URL = "https://audiotesto.duckdns.org"; 
 const POLLING_INTERVAL = 2000; 
-
 let accessCode = "";
 let transcriptionId = "";
 
-
-
-window.login =async function login() {
+// ✅ Funzione Login
+window.login = async function login() {
     accessCode = document.getElementById("accessCode").value;
 
     let response = await fetch(`${BACKEND_URL}/login`, {
@@ -26,6 +45,7 @@ window.login =async function login() {
     }
 }
 
+// ✅ Funzione Upload File
 window.uploadFile = async function uploadFile() {
     if (!accessCode) {
         alert("You must enter a valid code first!");
@@ -70,7 +90,7 @@ window.uploadFile = async function uploadFile() {
     }
 };
 
-
+// ✅ Funzione per ascoltare Firestore in tempo reale
 function startListeningToFirestore() {
     if (!transcriptionId) {
         alert("Error: Transcription ID not found!");
@@ -87,38 +107,42 @@ function startListeningToFirestore() {
     progressBar.style.width = "0%";
     progressBar.innerText = "0%";
 
+    console.log("🔄 Inizio ascolto Firestore per:", transcriptionId);
+
     // ✅ ASCOLTA Firebase Firestore IN TEMPO REALE
-    db.collection("transcriptions").doc(transcriptionId)
-        .onSnapshot((doc) => {
-            if (doc.exists) {
-                let data = doc.data();
-                console.log("🔄 Trascrizione aggiornata:", data.text);
+    const transcriptionRef = doc(db, "transcriptions", transcriptionId);
+    
+    onSnapshot(transcriptionRef, (docSnapshot) => {
+        if (docSnapshot.exists()) {
+            let data = docSnapshot.data();
+            console.log("📝 Trascrizione aggiornata da Firebase:", data.text);
 
-                if (data.text) {
-                    resultText.innerText = data.text;
-                }
-
-                if (data.progress !== undefined) {
-                    progressBar.style.width = `${data.progress}%`;
-                    progressBar.innerText = `${Math.round(data.progress)}%`;
-                }
-
-                // ✅ Se la trascrizione è completata, ferma il loading
-                if (data.progress >= 100) {
-                    liveStatus.innerText = "Completed!";
-                    loadingSpinner.style.display = "none";
-                    document.getElementById("downloadPdf").style.display = "block";
-                }
-            } else {
-                console.error("❌ Documento non trovato su Firebase.");
+            if (data.text) {
+                resultText.innerText = data.text; // Aggiorna il testo della trascrizione in tempo reale
             }
-        }, (error) => {
-            console.error("❌ Errore durante l'ascolto di Firestore:", error);
-        });
+
+            if (data.progress !== undefined) {
+                progressBar.style.width = `${data.progress}%`;
+                progressBar.innerText = `${Math.round(data.progress)}%`;
+            }
+
+            if (data.progress >= 100) {
+                liveStatus.innerText = "Completed!";
+                loadingSpinner.style.display = "none";
+                document.getElementById("downloadPdf").style.display = "block";
+            }
+        } else {
+            console.error("❌ Documento non trovato su Firebase.");
+        }
+    }, (error) => {
+        console.error("❌ Errore durante l'ascolto di Firestore:", error);
+    });
 }
-function downloadPDF() {
+
+// ✅ Funzione per scaricare il PDF della trascrizione
+window.downloadPDF = function downloadPDF() {
     let text = document.getElementById("result").innerText;
     let doc = new jsPDF();
     doc.text(text, 10, 10);
     doc.save("transcription.pdf");
-}
+};
