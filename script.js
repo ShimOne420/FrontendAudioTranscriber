@@ -92,9 +92,12 @@ window.uploadFile = async function uploadFile() {
 
 function startListeningToFirestore() {
     if (!transcriptionId) {
+        console.error("❌ Error: Transcription ID not found!");
         alert("Error: Transcription ID not found!");
         return;
     }
+
+    console.log("🔄 Tentativo di ascolto Firestore per:", transcriptionId);
 
     let liveStatus = document.getElementById("liveStatus");
     let resultText = document.getElementById("result");
@@ -106,24 +109,24 @@ function startListeningToFirestore() {
     progressBar.style.width = "0%";
     progressBar.innerText = "0%";
 
-    console.log("🔄 Inizio ascolto Firestore per:", transcriptionId);
-
     // ✅ ASCOLTA Firebase Firestore IN TEMPO REALE
     const transcriptionRef = doc(db, "transcriptions", transcriptionId);
     
     onSnapshot(transcriptionRef, (docSnapshot) => {
+        console.log("📡 Firebase sta ascoltando...");
+        
         if (docSnapshot.exists()) {
             let data = docSnapshot.data();
-            console.log("🔥 Aggiornamento Firestore ricevuto:", data); // <--- DEBUG
+            console.log("🔥 Dati ricevuti da Firestore:", data);
 
             if (data.text) {
-                resultText.innerText = data.text; // Aggiorna la trascrizione in tempo reale
+                resultText.innerText = data.text;
             }
 
             if (data.progress !== undefined) {
                 progressBar.style.width = `${data.progress}%`;
                 progressBar.innerText = `${Math.round(data.progress)}%`;
-                console.log(`📊 Progresso trascrizione: ${data.progress}%`); // <--- DEBUG
+                console.log(`📊 Progresso trascrizione: ${data.progress}%`);
             }
 
             if (data.progress >= 100) {
@@ -132,7 +135,7 @@ function startListeningToFirestore() {
                 document.getElementById("downloadPdf").style.display = "block";
             }
         } else {
-            console.error("❌ Documento non trovato su Firebase.");
+            console.error("❌ Documento non trovato in Firestore:", transcriptionId);
         }
     }, (error) => {
         console.error("❌ Errore durante l'ascolto di Firestore:", error);
