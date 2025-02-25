@@ -1,4 +1,4 @@
-import { db, firebaseConfig } from "./firebase-config.js";
+import { db } from "./firebase-config.js";
 const BACKEND_URL = "https://audiotesto.duckdns.org"; 
 const POLLING_INTERVAL = 2000; 
 
